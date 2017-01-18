@@ -1,4 +1,4 @@
-package org.usfirst.frc.team6220;
+package team6220;
 
 /**
  * Created by rolypoly on 1/16/17.
