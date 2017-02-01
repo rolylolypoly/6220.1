@@ -2,6 +2,7 @@ package team6220;
 
 /**
  * Created by rolypoly on 1/16/17.
+ * @author rolypoly
  */
 
 import com.ctre.CANTalon;
@@ -11,17 +12,21 @@ public class Robot extends SampleRobot {
 
     private RobotDrive drive;
     private CANTalon talon1, talon2, talon3, talon4;
-    private Joystick joystick;
+    private XboxController xbox;
+    private ADXRS450_Gyro gyro;
 
     @Override
     protected void robotInit() {
         super.robotInit();
-        joystick = new Joystick(0);
+        xbox = new XboxController(0);
         talon1 = new CANTalon(1);
         talon2 = new CANTalon(2);
         talon3 = new CANTalon(3);
         talon4 = new CANTalon(4);
         drive = new RobotDrive(talon1, talon2, talon3, talon4);
+        gyro = new ADXRS450_Gyro();
+        gyro.calibrate();
+        gyro.reset();
         CameraServer.getInstance().startAutomaticCapture();
     }
 
@@ -34,12 +39,11 @@ public class Robot extends SampleRobot {
     public void operatorControl() {
         super.operatorControl();
         while (isOperatorControl() && isEnabled()) {
-            //drive.tankDrive(joystick.getRawAxis(1), joystick.getRawAxis(5));
             drive.mecanumDrive_Cartesian(
-                    joystick.getRawAxis(0), //4 0
-                    joystick.getRawAxis(1), //5 1
-                    joystick.getRawAxis(2), //0 2
-                    0);
+                    xbox.getX(GenericHID.Hand.kRight),
+                    xbox.getY(GenericHID.Hand.kRight),
+                    xbox.getY(GenericHID.Hand.kLeft),
+                    gyro.getAngle());
             Timer.delay(.005);
         }
     }
