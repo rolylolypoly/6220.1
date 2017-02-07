@@ -33,16 +33,17 @@ public class Robot extends SampleRobot {
         gyro.calibrate();
         gyro.reset();
         CameraServer.getInstance().startAutomaticCapture();
+
         spinfast = new VictorSP(0);
-        encoder = new Encoder(0, 1, false, CounterBase.EncodingType.k4X);
-        encoder.setMinRate(.5);
-        LiveWindow.addSensor("Yes", 0, encoder);
-        encoder.startLiveWindowMode();
+        encoder = new Encoder(0, 1, false, CounterBase.EncodingType.k1X);
+        encoder.setDistancePerPulse(1 / 12);
+        encoder.setMinRate(1);
+        encoder.setSamplesToAverage(2);
+        encoder.setPIDSourceType(PIDSourceType.kRate);
         flywol = new PIDController(1.2, 0.7, 0.3, 1, encoder, spinfast);
-        LiveWindow.addActuator("Plz", 1, flywol);
-        flywol.startLiveWindowMode();
-        flywol.setOutputRange(0, 100);
-        flywol.setSetpoint(3000);
+        flywol.setOutputRange(0, 1);
+        flywol.setSetpoint(1000);
+        flywol.setContinuous();
         telemetry = new Telemetry(encoder);
     }
 
@@ -80,13 +81,18 @@ public class Robot extends SampleRobot {
     @Override
     public void test() {
         super.test();
+        telemetry.isEnabled(isEnabled());
         telemetry.start();
         telemetry.isEnabled(isEnabled());
+        flywol.startLiveWindowMode();
+        encoder.startLiveWindowMode();
         while (isTest() && isEnabled()) {
             telemetry.isEnabled(isEnabled());
             LiveWindow.run();
             Timer.delay(.01);
         }
+        flywol.stopLiveWindowMode();
+        encoder.stopLiveWindowMode();
         try {
             telemetry.join();
         } catch (InterruptedException e) {

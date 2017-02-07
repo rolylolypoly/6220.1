@@ -31,7 +31,7 @@ public class Telemetry extends Thread {
         return isEnabled;
     }
 
-    public synchronized void isEnabled(boolean isEnabled) {
+    synchronized void isEnabled(boolean isEnabled) {
         this.isEnabled = isEnabled;
     }
 
