@@ -45,6 +45,8 @@ public class Robot extends SampleRobot {
         flywol.setSetpoint(1000);
         flywol.setContinuous();
         telemetry = new Telemetry(encoder);
+        LiveWindow.addActuator("Shooter", "PID", spinfast);
+        LiveWindow.addActuator("Shooter", "Encoder", encoder);
     }
 
     @Override
@@ -55,8 +57,8 @@ public class Robot extends SampleRobot {
     @Override
     public void operatorControl() {
         super.operatorControl();
-        telemetry.start();
         telemetry.isEnabled(isEnabled());
+        telemetry.start();
         while (isOperatorControl() && isEnabled()) {
             drive.mecanumDrive_Cartesian(
                     joystick.getX(),
@@ -83,16 +85,12 @@ public class Robot extends SampleRobot {
         super.test();
         telemetry.isEnabled(isEnabled());
         telemetry.start();
-        telemetry.isEnabled(isEnabled());
-        flywol.startLiveWindowMode();
-        encoder.startLiveWindowMode();
         while (isTest() && isEnabled()) {
             telemetry.isEnabled(isEnabled());
             LiveWindow.run();
             Timer.delay(.01);
         }
-        flywol.stopLiveWindowMode();
-        encoder.stopLiveWindowMode();
+        LiveWindow.setEnabled(false);
         try {
             telemetry.join();
         } catch (InterruptedException e) {
