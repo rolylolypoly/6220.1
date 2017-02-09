@@ -18,7 +18,7 @@ public class Robot extends SampleRobot {
     private VictorSP spinfast;
     private Encoder encoder;
     private PIDController flywol;
-    private Telemetry telemetry;
+    private int counter = 0;
 
     @Override
     protected void robotInit() {
@@ -35,18 +35,18 @@ public class Robot extends SampleRobot {
         CameraServer.getInstance().startAutomaticCapture();
 
         spinfast = new VictorSP(0);
-        encoder = new Encoder(0, 1, false, CounterBase.EncodingType.k1X);
-        encoder.setDistancePerPulse(1 / 12);
-        encoder.setMinRate(1);
-        encoder.setSamplesToAverage(2);
+        encoder = new Encoder(0, 1, false, CounterBase.EncodingType.k4X);
+        encoder.setMaxPeriod(.1);
+        encoder.setMinRate(10);
+        encoder.setDistancePerPulse(12);
+        encoder.setSamplesToAverage(4);
         encoder.setPIDSourceType(PIDSourceType.kRate);
         flywol = new PIDController(1.2, 0.7, 0.3, 1, encoder, spinfast);
-        flywol.setOutputRange(0, 1);
+        flywol.setOutputRange(0,1);
         flywol.setSetpoint(1000);
         flywol.setContinuous();
-        telemetry = new Telemetry(encoder);
-        LiveWindow.addActuator("Shooter", "PID", spinfast);
-        LiveWindow.addActuator("Shooter", "Encoder", encoder);
+        LiveWindow.addActuator("Shooter", "PID", flywol);
+        LiveWindow.addSensor("Shooter", "Encoder", encoder);
     }
 
     @Override
@@ -57,8 +57,6 @@ public class Robot extends SampleRobot {
     @Override
     public void operatorControl() {
         super.operatorControl();
-        telemetry.isEnabled(isEnabled());
-        telemetry.start();
         while (isOperatorControl() && isEnabled()) {
             drive.mecanumDrive_Cartesian(
                     joystick.getX(),
@@ -71,31 +69,19 @@ public class Robot extends SampleRobot {
                 flywol.disable();
             Timer.delay(.005); //200 Hz
         }
-        telemetry.isEnabled(isEnabled());
-        try {
-            telemetry.join();
-        } catch (InterruptedException e) {
-            System.err.println("Operator control stacktrace");
-            e.printStackTrace();
-        }
     }
 
     @Override
     public void test() {
         super.test();
-        telemetry.isEnabled(isEnabled());
-        telemetry.start();
         while (isTest() && isEnabled()) {
-            telemetry.isEnabled(isEnabled());
+            if (counter > 20) {
+                System.out.println(encoder.getRate());
+                counter = 0;
+            }
             LiveWindow.run();
             Timer.delay(.01);
-        }
-        LiveWindow.setEnabled(false);
-        try {
-            telemetry.join();
-        } catch (InterruptedException e) {
-            System.err.println("Test control exception");
-            e.printStackTrace();
+            counter++;
         }
     }
 
