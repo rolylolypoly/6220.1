@@ -2,6 +2,7 @@ package team6220;
 
 /**
  * Created by rolypoly on 1/16/17.
+ *
  * @author rolypoly
  */
 
@@ -35,18 +36,18 @@ public class Robot extends SampleRobot {
         CameraServer.getInstance().startAutomaticCapture();
 
         spinfast = new VictorSP(0);
-        encoder = new Encoder(0, 1, false, CounterBase.EncodingType.k4X);
-        encoder.setMaxPeriod(.1);
-        encoder.setMinRate(10);
-        encoder.setDistancePerPulse(12);
-        encoder.setSamplesToAverage(4);
+        encoder = new Encoder(1, 0, false, CounterBase.EncodingType.k4X);
+        encoder.setMaxPeriod(.001);
+        encoder.setMinRate(100);
+        encoder.setDistancePerPulse(20);
+        encoder.setSamplesToAverage(24);
         encoder.setPIDSourceType(PIDSourceType.kRate);
-        flywol = new PIDController(1.2, 0.7, 0.3, 1, encoder, spinfast);
-        flywol.setOutputRange(0,1);
-        flywol.setSetpoint(1000);
-        flywol.setContinuous();
+        flywol = new PIDController(0.00001, 0, 0.000015, encoder, spinfast);
+        flywol.setOutputRange(0, 1);
+        flywol.setSetpoint(15000);
         LiveWindow.addActuator("Shooter", "PID", flywol);
         LiveWindow.addSensor("Shooter", "Encoder", encoder);
+
     }
 
     @Override
@@ -75,12 +76,15 @@ public class Robot extends SampleRobot {
     public void test() {
         super.test();
         while (isTest() && isEnabled()) {
-            if (counter > 20) {
-                System.out.println(encoder.getRate());
+            if (counter > 250) {
+                System.out.println(String.format("RPM: %f" +
+                                " Throttle: %f",
+                        encoder.getRate(),
+                        spinfast.getSpeed()));
                 counter = 0;
             }
             LiveWindow.run();
-            Timer.delay(.01);
+            Timer.delay(.001);
             counter++;
         }
     }
