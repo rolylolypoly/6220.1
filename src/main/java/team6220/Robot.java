@@ -21,7 +21,6 @@ public class Robot extends SampleRobot {
     private int counter = 0;
     private Victor belt;
     private Spark indexer;
-    private IO io;
 
     @Override
     protected void robotInit() {
@@ -48,19 +47,10 @@ public class Robot extends SampleRobot {
         flywol.setSetpoint(18000);
         LiveWindow.addActuator("Shooter", "PID", flywol);
         LiveWindow.addSensor("Shooter", "Encoder", encoder);
-
-        io = new IO(joystick);
-        io.start();
     }
 
     @Override
     protected void disabled() {
-        try {
-            io.join();
-        } catch (InterruptedException e) {
-            System.err.println("Error stopping IO thread.");
-            e.printStackTrace();
-        }
     }
 
     @Override
