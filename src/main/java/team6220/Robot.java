@@ -15,12 +15,14 @@ public class Robot extends SampleRobot {
     private RobotDrive drive;
     private CANTalon talon1, talon2, talon3, talon4;
     private Joystick joystick;
-    private VictorSP spinfast;
+    private VictorSP shooter;
     private Encoder encoder;
     private PIDController flywol;
     private int counter = 0;
-    private Victor belt;
-    private Spark indexer;
+    private Spark belt;
+    private VictorSP indexer;
+    private Spark spindexer;
+    private VictorSP climber;
 
     @Override
     protected void robotInit() {
@@ -31,18 +33,21 @@ public class Robot extends SampleRobot {
         talon3 = new CANTalon(3);
         talon4 = new CANTalon(4);
         drive = new RobotDrive(talon1, talon2, talon3, talon4);
-        belt = new Victor(1);
-        indexer = new Spark(2);
+        belt = new Spark(2);
+        indexer = new VictorSP(3);
+        shooter = new VictorSP(0);
+        spindexer = new Spark(1);
+        climber = new VictorSP(4);
+
         CameraServer.getInstance().startAutomaticCapture();
 
-        spinfast = new VictorSP(0);
         encoder = new Encoder(1, 0, false, CounterBase.EncodingType.k4X);
         encoder.setMaxPeriod(.01);
         encoder.setMinRate(100);
         encoder.setDistancePerPulse(20);
         encoder.setSamplesToAverage(24);
         encoder.setPIDSourceType(PIDSourceType.kRate);
-        flywol = new PIDController(0.00001, 0, 0.000015, encoder, spinfast);
+        flywol = new PIDController(0.00001, 0, 0.000015, encoder, shooter);
         flywol.setOutputRange(0, 1);
         flywol.setSetpoint(18000);
         LiveWindow.addActuator("Shooter", "PID", flywol);
@@ -66,26 +71,38 @@ public class Robot extends SampleRobot {
                     joystick.getY(),
                     joystick.getTwist(),
                     0);
+
             if (joystick.getTrigger()) {
                 flywol.enable();
                 belt.set(1);
-                indexer.set(-1);
+                spindexer.set(.5);
+                indexer.set(.75);
             }
+
+            else if (joystick.getRawButton(2)){
+
+                belt.set(1);
+                indexer.set(-.75);
+            }
+
+            else if (joystick.getRawButton(8)) {
+                climber.set(1);
+            }
+
+            else if (joystick.getRawButton(7)) {
+                climber.set(-1);
+            }
+
             else {
                 flywol.disable();
                 belt.set(0);
+                spindexer.set(0);
                 indexer.set(0);
+                climber.set(0);
             }
-            if (joystick.getRawButton(7)){
-                belt.set(1);
-                indexer.set(1);
-            }
-            else {
-                belt.set(0);
-                indexer.set(0);
-            }
-            counter++;
-            Timer.delay(.005); //200 Hz
+            Timer.delay(.001);
+
+
         }
     }
 
@@ -96,7 +113,7 @@ public class Robot extends SampleRobot {
                 System.out.println(String.format("RPM: %f" +
                                 " Throttle: %f",
                         encoder.getRate(),
-                        spinfast.getSpeed()));
+                        shooter.getSpeed()));
                 counter = 0;
             }
             LiveWindow.run();
